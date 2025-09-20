@@ -10,12 +10,13 @@ import { buildDiff } from '@/utils/diff';
 import { DiffViewer } from '@/components/DiffViewer';
 import { MergeDiff } from '@/components/MergeDiff';
 import { HtmlDiffPreview } from '@/components/HtmlDiffPreview';
+import { TextPreview } from '@/components/TextPreview';
 import { toEmailHtml } from '@/utils/emailHtml';
 
 const CodeMirror = dynamic(() => import('@uiw/react-codemirror'), { ssr: false });
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
-type DiffMode = 'inline' | 'merge' | 'html';
+type DiffMode = 'inline' | 'merge' | 'preview' | 'html';
 type EditorMode = 'text' | 'html';
 
 type PolishResponse = {
@@ -113,7 +114,10 @@ export default function Home() {
   useEffect(() => {
     setDiffMode((prev) => {
       if (editorMode === 'html') {
-        return prev === 'merge' ? 'merge' : 'html';
+        if (prev === 'merge') {
+          return 'merge';
+        }
+        return 'html';
       }
       return prev === 'html' ? 'inline' : prev;
     });
@@ -297,6 +301,15 @@ export default function Home() {
             >
               Merge View
             </button>
+            {editorMode === 'text' && (
+              <button
+                type="button"
+                className={diffMode === 'preview' ? 'toggle-button active' : 'toggle-button'}
+                onClick={() => setDiffMode('preview')}
+              >
+                テキストプレビュー
+              </button>
+            )}
             {editorMode === 'html' && (
               <button
                 type="button"
@@ -310,7 +323,9 @@ export default function Home() {
         )}
 
         {hasSuggestion ? (
-          editorMode === 'html' && diffMode === 'inline' && hasDiff ? (
+          editorMode === 'text' && diffMode === 'preview' && suggestedText ? (
+            <TextPreview original={textValue} revised={suggestedText} />
+          ) : editorMode === 'html' && diffMode === 'inline' && hasDiff ? (
             <DiffViewer segments={diffSegments} />
           ) : diffMode === 'merge' && suggestedText ? (
             <MergeDiff

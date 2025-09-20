@@ -23,7 +23,7 @@ npm run dev
 ## 動作確認ポイント
 1. エディタ左上の「テキスト編集 / HTML編集」トグルで編集モードを切り替えられること。
 2. 「AIで推敲」押下でモードに合わせた推敲結果が返却されること。
-3. テキストモードでは差分パネルに追加・削除がハイライト付きで表示されること。
+3. テキストモードでは差分パネルに追加・削除がハイライト付きで表示され、必要に応じて「テキストプレビュー」で推敲前後を並べて見られること。
 4. 差分パネル右上で「ハイライト表示 / Merge View」を切り替えられること（HTMLモード時のみ HTMLプレビューボタンが追加される）。
 5. HTMLモードではプレビューがカード型レイアウトで表示されること。
 6. 「全文置換」でエディタ本文が推敲結果に差し替わり、差分パネルがリセットされること。
@@ -36,7 +36,8 @@ npm run dev
 - `src/utils/diff.ts`: 差分計算のユーティリティ。
 - `src/components/DiffViewer.tsx`: 差分表示コンポーネント。
 - `src/components/MergeDiff.tsx`: `@codemirror/merge` を用いた左右比較用ビュー。
-- `src/components/HtmlDiffPreview.tsx`: HTMLメール向けのレンダリング比較と構造サマリー。
+- `src/components/HtmlDiffPreview.tsx`: HTMLメール向けのカード型レンダリング比較ビュー。
+- `src/components/TextPreview.tsx`: テキストモードで推敲前後を並べて確認するプレビュー。
 - `src/utils/emailHtml.ts`: テキスト本文を簡易HTMLに変換するユーティリティ。
 - `src/mocks/handlers.ts`: テキスト/HTML 両モードの推敲モックを返却。
 - `public/mockServiceWorker.js`: `msw` 用のサービスワーカーファイル（必要に応じて再生成可能）。
