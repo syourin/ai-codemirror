@@ -1,0 +1,220 @@
+:root {
+  color-scheme: light;
+  font-family: 'Inter', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+  background-color: #f7fafc;
+  color: #1a202c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+}
+
+button {
+  cursor: pointer;
+}
+
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.editor-card,
+.panel-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.editor-header,
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.editor-title,
+.panel-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.cta-button {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.cta-button[disabled] {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+}
+
+.status-text {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.diff-panel {
+  border-radius: 12px;
+  background-color: #f8fafc;
+  padding: 16px;
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+.diff-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.legend {
+  display: flex;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.diff-add {
+  background-color: rgba(34, 197, 94, 0.35);
+  border-radius: 6px;
+}
+
+.diff-remove {
+  background-color: rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  text-decoration: line-through;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.diff-mode-toggle {
+  display: inline-flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  padding: 4px;
+}
+
+.toggle-button {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.toggle-button.active {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.merge-container {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.merge-container .cm-mergeView {
+  display: flex;
+  width: 100%;
+  background-color: #f8fafc;
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+.merge-container .cm-mergeView .cm-editor {
+  flex: 1;
+  max-height: 420px;
+  border-right: 1px solid #e2e8f0;
+}
+
+.merge-container .cm-mergeView .cm-editor:last-of-type {
+  border-right: none;
+}
+
+.merge-container .cm-mergeView .cm-scroller {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  padding: 16px;
+}
+
+.merge-container .cm-mergeView .cm-gutterElement {
+  font-size: 0.75rem;
+}
+
+.merge-container .cm-mergeGap {
+  background-color: #e2e8f0;
+}
+
+.apply-button {
+  background-color: #15803d;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  flex: 1;
+  font-weight: 600;
+}
+
+.reject-button {
+  background-color: #e2e8f0;
+  color: #1e293b;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  flex: 1;
+  font-weight: 600;
+}
+
+.notice {
+  background-color: #ffe4e6;
+  color: #9f1239;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+}
+
+.success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    padding: 20px;
+  }
+}
