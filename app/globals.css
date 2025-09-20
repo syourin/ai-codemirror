@@ -40,6 +40,12 @@ button {
   gap: 16px;
 }
 
+.panel-card html,
+.panel-card body,
+.panel-card div {
+  box-sizing: border-box;
+}
+
 .editor-header,
 .panel-header {
   display: flex;
@@ -178,6 +184,117 @@ button {
 
 .merge-container .cm-mergeGap {
   background-color: #e2e8f0;
+}
+
+.html-diff-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.html-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.html-preview-pane {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-header {
+  margin: 0;
+  padding: 12px 16px;
+  background-color: #e2e8f0;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.preview-body {
+  padding: 24px;
+  overflow: auto;
+  max-height: 420px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  background: radial-gradient(circle at top, #f1f5f9 0%, #e2e8f0 45%, #e2e8f0 100%);
+  display: flex;
+  justify-content: center;
+}
+
+.preview-body table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.preview-body table,
+.preview-body th,
+.preview-body td {
+  border: 1px solid #cbd5f5;
+}
+
+.preview-body th,
+.preview-body td {
+  padding: 6px 10px;
+}
+
+.preview-body a {
+  color: #2563eb;
+}
+
+.email-canvas {
+  width: 100%;
+  max-width: 540px;
+  background-color: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  padding: 32px 36px;
+  font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+  color: #1f2937;
+}
+
+.email-canvas h1,
+.email-canvas h2,
+.email-canvas h3 {
+  margin-top: 0;
+  color: #0f172a;
+}
+
+.email-canvas p {
+  margin: 0 0 12px;
+}
+
+.email-canvas p:last-child {
+  margin-bottom: 0;
+}
+
+.email-canvas ul {
+  margin: 0 0 12px 18px;
+  padding: 0;
+  list-style: disc;
+}
+
+.email-canvas li {
+  margin-bottom: 6px;
+}
+
+.email-canvas li:last-child {
+  margin-bottom: 0;
+}
+
+.email-canvas strong {
+  color: #0f172a;
+}
+
+.email-canvas hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 20px 0;
 }
 
 .apply-button {

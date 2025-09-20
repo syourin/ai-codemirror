@@ -3,16 +3,20 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { markdown } from '@codemirror/lang-markdown';
+import { html as htmlLanguage } from '@codemirror/lang-html';
 import { EditorView } from '@codemirror/view';
 import type { DiffSegment } from '@/utils/diff';
 import { buildDiff } from '@/utils/diff';
 import { DiffViewer } from '@/components/DiffViewer';
 import { MergeDiff } from '@/components/MergeDiff';
+import { HtmlDiffPreview } from '@/components/HtmlDiffPreview';
+import { toEmailHtml } from '@/utils/emailHtml';
 
 const CodeMirror = dynamic(() => import('@uiw/react-codemirror'), { ssr: false });
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
-type DiffMode = 'inline' | 'merge';
+type DiffMode = 'inline' | 'merge' | 'html';
+type EditorMode = 'text' | 'html';
 
 type PolishResponse = {
   revisedText: string;
@@ -37,8 +41,39 @@ PS: もし可能なら今週中にコメントちゃっともらえると幸い�
 そのため、リソースが足りなければ相談ください。
 長文になってしまい申し訳ございません。よろしくお願い致します。`;
 
+const INITIAL_HTML = `<!DOCTYPE html>
+<html lang="ja">
+  <body style="margin:0;background-color:#f5f7fb;font-family:'Noto Sans JP','Hiragino Sans','Yu Gothic',sans-serif;color:#1f2937;">
+    <div style="max-width:640px;margin:24px auto;padding:0 16px;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;">
+        <tr style="background:#e2e8f0;">
+          <td style="padding:20px 28px;">
+            <p style="margin:0;font-size:14px;color:#475569;">関係者各位</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px;">
+            <p style="margin:0 0 12px;">いつもお世話になっております。昨日の定例で話した内容をまだ整理しきれていないのですが、ひとまず共有いたします。</p>
+            <ul style="margin:0 0 18px 18px; color:#475569;">
+              <li>共有資料の最新版がどこにあるか把握できておらず、後ほど探します。</li>
+              <li>コスト試算はざっくりの数字しかなく、来週詰める予定です。</li>
+              <li>施策A/Bの担当が未定のままです。</li>
+            </ul>
+            <p style="margin:0 0 8px;">特に急ぎではないですが、取り急ぎご連絡まで。</p>
+            <p style="margin:0 0 8px;">余談ですが最近は雨が多いですね。</p>
+            <p style="margin:0 0 8px;">PS: もし可能なら今週中にコメントちゃっともらえると幸いです。</p>
+            <p style="margin:0;">長文になってしまい申し訳ございません。よろしくお願い致します。</p>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>`;
+
 export default function Home() {
-  const [editorValue, setEditorValue] = useState(INITIAL_TEXT);
+  const [editorMode, setEditorMode] = useState<EditorMode>('text');
+  const [textValue, setTextValue] = useState(INITIAL_TEXT);
+  const [htmlValue, setHtmlValue] = useState(INITIAL_HTML);
   const [status, setStatus] = useState<Status>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [suggestedText, setSuggestedText] = useState<string | null>(null);
@@ -75,20 +110,48 @@ export default function Home() {
     };
   }, []);
 
-  const extensions = useMemo(
-    () => [markdown(), EditorView.lineWrapping],
-    []
+  useEffect(() => {
+    setDiffMode((prev) => {
+      if (editorMode === 'html') {
+        return prev === 'merge' ? 'merge' : 'html';
+      }
+      return prev === 'html' ? 'inline' : prev;
+    });
+  }, [editorMode]);
+
+  const editorContent = editorMode === 'text' ? textValue : htmlValue;
+
+  const extensions = useMemo(() => {
+    const base = [EditorView.lineWrapping];
+    return editorMode === 'text' ? [markdown(), ...base] : [htmlLanguage(), ...base];
+  }, [editorMode]);
+
+  const handleModeChange = useCallback(
+    (mode: EditorMode) => {
+      if (mode === editorMode) return;
+      setEditorMode(mode);
+      setSuggestedText(null);
+      setDiffSegments([]);
+      setLastGuidance(null);
+      setStatus('idle');
+      setErrorMessage(null);
+    },
+    [editorMode]
   );
 
   const handlePolish = useCallback(async () => {
-    if (!editorValue.trim()) {
+    const currentValue = editorMode === 'text' ? textValue : htmlValue;
+    const emptinessCheck = editorMode === 'html'
+      ? currentValue.replace(/<[^>]+>/g, '').trim()
+      : currentValue.trim();
+
+    if (!emptinessCheck) {
       setErrorMessage('本文が空です。内容を入力してください。');
       return;
     }
 
     setStatus('loading');
     setErrorMessage(null);
-    setDiffMode('inline');
 
     try {
       const response = await fetch('/api/polish', {
@@ -97,7 +160,8 @@ export default function Home() {
         body: JSON.stringify({
           prompt:
             '以下の文章を誤字脱字を修正し、自然で読みやすい形に推敲してください。変更は必要最小限にしてください。',
-          text: editorValue
+          text: currentValue,
+          format: editorMode
         })
       });
 
@@ -107,37 +171,53 @@ export default function Home() {
 
       const data = (await response.json()) as PolishResponse;
       setSuggestedText(data.revisedText);
-      setDiffSegments(buildDiff(editorValue, data.revisedText));
+      setDiffSegments(buildDiff(currentValue, data.revisedText));
       setLastGuidance(data.guidance);
       setStatus('success');
+      setDiffMode(editorMode === 'text' ? 'inline' : 'html');
     } catch (error) {
       console.error(error);
       setStatus('error');
       setErrorMessage('推敲に失敗しました。時間をおいて再実行してください。');
     }
-  }, [editorValue]);
+  }, [editorMode, textValue, htmlValue]);
 
   const handleApply = useCallback(() => {
     if (!suggestedText) return;
 
-    setEditorValue(suggestedText);
+    if (editorMode === 'text') {
+      setTextValue(suggestedText);
+    } else {
+      setHtmlValue(suggestedText);
+    }
+
     setSuggestedText(null);
     setDiffSegments([]);
     setLastGuidance(null);
     setStatus('idle');
-    setDiffMode('inline');
-  }, [suggestedText]);
+    setDiffMode(editorMode === 'text' ? 'inline' : 'html');
+  }, [editorMode, suggestedText]);
 
   const handleReject = useCallback(() => {
     setSuggestedText(null);
     setDiffSegments([]);
     setLastGuidance(null);
     setStatus('idle');
-    setDiffMode('inline');
-  }, []);
+    setDiffMode(editorMode === 'text' ? 'inline' : 'html');
+  }, [editorMode]);
 
   const hasSuggestion = suggestedText !== null;
   const hasDiff = diffSegments.length > 0;
+
+  const originalHtml = useMemo(
+    () => (editorMode === 'text' ? toEmailHtml(textValue) : htmlValue),
+    [editorMode, textValue, htmlValue]
+  );
+
+  const revisedHtml = useMemo(() => {
+    if (!suggestedText) return '';
+    return editorMode === 'text' ? toEmailHtml(suggestedText) : suggestedText;
+  }, [editorMode, suggestedText]);
 
   return (
     <main className="app-shell">
@@ -153,18 +233,42 @@ export default function Home() {
             {status === 'loading' ? '推敲中…' : 'AIで推敲'}
           </button>
         </header>
+        <div className="diff-mode-toggle" role="group" aria-label="エディタモード">
+          <button
+            type="button"
+            className={editorMode === 'text' ? 'toggle-button active' : 'toggle-button'}
+            onClick={() => handleModeChange('text')}
+          >
+            テキスト編集
+          </button>
+          <button
+            type="button"
+            className={editorMode === 'html' ? 'toggle-button active' : 'toggle-button'}
+            onClick={() => handleModeChange('html')}
+          >
+            HTML編集
+          </button>
+        </div>
         <div className="status-text">
-          差し込み変数やHTMLタグはマスクした上で送信されます（モック）。
+          {editorMode === 'text'
+            ? '差し込み変数やHTMLタグはマスクした上で送信されます（モック）。'
+            : 'HTMLメールのソースを編集し、AIが整形したプレビューを確認できます。'}
         </div>
         <CodeMirror
-          value={editorValue}
+          value={editorContent}
           height="520px"
           extensions={extensions}
           theme="light"
-          onChange={(value) => setEditorValue(value)}
+          onChange={(value) => {
+            if (editorMode === 'text') {
+              setTextValue(value);
+            } else {
+              setHtmlValue(value);
+            }
+          }}
         />
         {status === 'error' && errorMessage && <div className="notice">{errorMessage}</div>}
-        {status === 'success' && hasSuggestion && !hasDiff && (
+        {editorMode === 'text' && status === 'success' && hasSuggestion && !hasDiff && (
           <div className="notice success">大きな修正は見つかりませんでした。</div>
         )}
       </section>
@@ -193,13 +297,30 @@ export default function Home() {
             >
               Merge View
             </button>
+            {editorMode === 'html' && (
+              <button
+                type="button"
+                className={diffMode === 'html' ? 'toggle-button active' : 'toggle-button'}
+                onClick={() => setDiffMode('html')}
+              >
+                HTMLプレビュー
+              </button>
+            )}
           </div>
         )}
 
         {hasSuggestion ? (
-          diffMode === 'merge' && suggestedText ? (
-            <MergeDiff original={editorValue} revised={suggestedText} />
-          ) : hasDiff ? (
+          editorMode === 'html' && diffMode === 'inline' && hasDiff ? (
+            <DiffViewer segments={diffSegments} />
+          ) : diffMode === 'merge' && suggestedText ? (
+            <MergeDiff
+              original={editorMode === 'text' ? textValue : originalHtml}
+              revised={editorMode === 'text' ? suggestedText : revisedHtml}
+              mode={editorMode === 'text' ? 'markdown' : 'html'}
+            />
+          ) : editorMode === 'html' && diffMode === 'html' && revisedHtml ? (
+            <HtmlDiffPreview original={originalHtml} revised={revisedHtml} />
+          ) : editorMode === 'text' && hasDiff ? (
             <DiffViewer segments={diffSegments} />
           ) : (
             <p className="status-text">大きな差分は見つかりませんでした。</p>
