@@ -11,12 +11,13 @@ import { DiffViewer } from '@/components/DiffViewer';
 import { MergeDiff } from '@/components/MergeDiff';
 import { HtmlDiffPreview } from '@/components/HtmlDiffPreview';
 import { TextPreview } from '@/components/TextPreview';
+import { ReactSplitDiff } from '@/components/ReactDiffViewer';
 import { toEmailHtml } from '@/utils/emailHtml';
 
 const CodeMirror = dynamic(() => import('@uiw/react-codemirror'), { ssr: false });
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
-type DiffMode = 'inline' | 'merge' | 'preview' | 'html';
+type DiffMode = 'inline' | 'merge' | 'preview' | 'html' | 'react';
 type EditorMode = 'text' | 'html';
 
 type PolishResponse = {
@@ -114,12 +115,15 @@ export default function Home() {
   useEffect(() => {
     setDiffMode((prev) => {
       if (editorMode === 'html') {
-        if (prev === 'merge') {
-          return 'merge';
+        if (prev === 'merge' || prev === 'react') {
+          return prev;
         }
         return 'html';
       }
-      return prev === 'html' ? 'inline' : prev;
+      if (prev === 'html') {
+        return 'inline';
+      }
+      return prev;
     });
   }, [editorMode]);
 
@@ -223,6 +227,9 @@ export default function Home() {
     return editorMode === 'text' ? toEmailHtml(suggestedText) : suggestedText;
   }, [editorMode, suggestedText]);
 
+  const comparisonOriginal = editorMode === 'text' ? textValue : originalHtml;
+  const comparisonRevised = editorMode === 'text' ? suggestedText ?? '' : revisedHtml;
+
   return (
     <main className="app-shell">
       <section className="editor-card">
@@ -296,6 +303,13 @@ export default function Home() {
             </button>
             <button
               type="button"
+              className={diffMode === 'react' ? 'toggle-button active' : 'toggle-button'}
+              onClick={() => setDiffMode('react')}
+            >
+              2ペイン差分
+            </button>
+            <button
+              type="button"
               className={diffMode === 'merge' ? 'toggle-button active' : 'toggle-button'}
               onClick={() => setDiffMode('merge')}
             >
@@ -325,6 +339,8 @@ export default function Home() {
         {hasSuggestion ? (
           editorMode === 'text' && diffMode === 'preview' && suggestedText ? (
             <TextPreview original={textValue} revised={suggestedText} />
+          ) : diffMode === 'react' && suggestedText ? (
+            <ReactSplitDiff original={comparisonOriginal} revised={comparisonRevised} />
           ) : editorMode === 'html' && diffMode === 'inline' && hasDiff ? (
             <DiffViewer segments={diffSegments} />
           ) : diffMode === 'merge' && suggestedText ? (

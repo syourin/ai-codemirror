@@ -121,6 +121,14 @@ button {
   text-decoration: line-through;
 }
 
+.diff-viewer-wrapper {
+  border-radius: 12px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  overflow: auto;
+  max-height: 420px;
+}
+
 .panel-actions {
   display: flex;
   gap: 12px;

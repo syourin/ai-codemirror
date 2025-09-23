@@ -34,7 +34,9 @@ export function MergeDiff({ original, revised, mode = 'markdown' }: MergeDiffPro
         extensions: [mode === 'html' ? htmlLanguage() : markdown(), EditorView.lineWrapping]
       },
       highlightChanges: true,
+      // @ts-ignore: collapseIdentical is available at runtime but missing from type definitions
       collapseIdentical: true,
+      // @ts-ignore: revertControls accepts false to hide buttons although types are outdated
       revertControls: false
     });
 

@@ -1,16 +1,21 @@
 'use client';
 
 import { useMemo } from 'react';
-import DOMPurify from 'dompurify';
+import DOMPurify, { type Config as DOMPurifyConfig } from 'dompurify';
+
+type RelaxedDOMPurifyConfig = DOMPurifyConfig & {
+  ALLOWED_TAGS?: DOMPurifyConfig['ALLOWED_TAGS'] | false;
+  ALLOWED_ATTR?: DOMPurifyConfig['ALLOWED_ATTR'] | false;
+};
 
 type HtmlDiffPreviewProps = {
   original: string;
   revised: string;
 };
 
-const PURIFY_CONFIG: DOMPurify.Config = {
-  ALLOWED_TAGS: false,
-  ALLOWED_ATTR: false,
+const PURIFY_CONFIG: RelaxedDOMPurifyConfig = {
+  ALLOWED_TAGS: false as unknown as string[],
+  ALLOWED_ATTR: false as unknown as string[],
   ADD_ATTR: ['style', 'class', 'align', 'bgcolor', 'border', 'cellpadding', 'cellspacing'],
   ADD_TAGS: ['table', 'tbody', 'thead', 'tfoot', 'tr', 'td', 'th', 'span', 'div', 'p', 'ul', 'li', 'br', 'ol', 'h1', 'h2', 'h3']
 };
